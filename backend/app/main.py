@@ -11,7 +11,7 @@ from app.database import engine, Base
 import app.models  # noqa: F401
 
 # Import route modules
-from app.routes import auth, menu, orders, kitchen, reviews
+from app.routes import auth, menu, orders, kitchen, reviews, ai
 
 
 @asynccontextmanager
@@ -44,6 +44,7 @@ app.include_router(menu.router)
 app.include_router(orders.router)
 app.include_router(kitchen.router)
 app.include_router(reviews.router)
+app.include_router(ai.router)
 
 
 @app.get("/", tags=["Health"])

@@ -44,6 +44,7 @@ export const Navbar = () => {
               </NavLink>
 
               {user?.role === 'admin' && (
+                <>
                 <NavLink
                   to="/admin"
                   className={({ isActive }) =>
@@ -56,6 +57,19 @@ export const Navbar = () => {
                 >
                   Admin Dash
                 </NavLink>
+                <NavLink
+                  to="/analytics"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-brand-900/50 text-brand-300 shadow-inner ring-1 ring-brand-500/50'
+                        : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    }`
+                  }
+                >
+                  AI Analytics
+                </NavLink>
+                </>
               )}
             </div>
           </div>

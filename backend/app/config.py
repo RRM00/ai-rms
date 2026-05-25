@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8-hour shift
     ALGORITHM: str = "HS256"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
+    GOOGLE_API_KEY: str = ""
+    LLM_MODEL: str = "gemini-2.0-flash"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

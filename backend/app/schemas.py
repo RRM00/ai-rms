@@ -119,3 +119,31 @@ class ReviewResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── AI / Analytics ────────────────────────────────────────────────────────────
+
+class AnalyticsRequest(BaseModel):
+    question: str = Field(..., min_length=3)
+
+
+class AnalyticsResponse(BaseModel):
+    question: str
+    sql: str
+    results: List[dict]
+    answer: str
+
+
+class SentimentRequest(BaseModel):
+    review_text: str = Field(..., min_length=1)
+
+
+class AspectDetail(BaseModel):
+    aspect: str
+    sentiment: str
+    detail: str
+
+
+class SentimentResponse(BaseModel):
+    overall: str
+    aspects: List[AspectDetail]

@@ -1,0 +1,200 @@
+AI-RMS: Project Briefing Document
+Date: April 24, 2026 | Status: Phase 1 Complete, Phase 2 Planned | Repo: github.com/RRM00/ai-rms
+
+1. What Is AI-RMS?
+AI-RMS (AI-Enhanced Restaurant Management System) is a cloud-native, Generative AI-powered Point of Sale (POS) system. It is designed as an "Agentic Web App" where LLMs actively assist in upselling, operational forecasting, and business intelligence.
+
+Architecture: 4-Tier Decoupled System
+Presentation Layer(React + Tailwind)
+Logic Layer(FastAPI)
+Intelligence Layer(LangChain + LLM)
+Data Layer(SQLAlchemy + SQLite)
+Layer	Tech	Purpose
+Presentation	React, Tailwind CSS v3, Vite	POS UI, Admin Dashboard, Kitchen Display
+Logic	Python, FastAPI (async)	REST API, JWT Auth, business rules
+Intelligence	LangChain, OpenAI (Phase 2)	Upsell, Analytics, Sentiment, Wait-Time
+Data	SQLAlchemy, SQLite (swappable to PostgreSQL)	Persistent storage, async I/O
+2. What Has Been Built (Phase 1)
+2.1 Database Schema — 4 Models
+has reviews
+User
+int
+id
+PK
+string
+username
+UK
+string
+hashed_password
+string
+name
+string
+role
+staff | admin
+datetime
+created_at
+MenuItem
+int
+id
+PK
+string
+name
+text
+description
+float
+price
+string
+category
+string
+image_url
+bool
+is_available
+Order
+int
+id
+PK
+string
+status
+Received | Preparing | Ready | Delivered
+float
+total
+json
+items
+snapshot of cart at checkout
+datetime
+created_at
+CustomerReview
+int
+id
+PK
+int
+order_id
+FK
+text
+review_text
+datetime
+created_at
+IMPORTANT
+
+Design Decision: Order.items uses a JSON column storing a snapshot of item names and prices at checkout time. This ensures historical order data remains accurate even if menu prices change later.
+
+2.2 Backend API — 16 Endpoints
+The backend runs on FastAPI with full async support, JWT authentication, and role-based access control.
+
+Method	Endpoint	Auth	Description
+POST	/api/auth/login	Public	Staff login → returns JWT token
+POST	/api/auth/register	Admin	Create new staff accounts
+GET	/api/auth/me	Bearer	Get current user profile
+GET	/api/menu	Public	List all menu items (filterable by category)
+POST	/api/menu	Admin	Create a new menu item
+PATCH	/api/menu/{id}	Admin	Update item (price, availability, etc.)
+DELETE	/api/menu/{id}	Admin	Remove a menu item
+GET	/api/orders	Bearer	Order history with date/limit filtering
+POST	/api/orders	Bearer	Create order from cart payload
+GET	/api/orders/{id}	Bearer	Get a single order by ID
+PATCH	/api/orders/{id}/status	Bearer	Update order status (kitchen workflow)
+GET	/api/kitchen/active	Bearer	All active (non-delivered) orders
+POST	/api/reviews	Public	Submit a customer review
+GET	/api/reviews	Bearer	List all reviews (paginated)
+GET	/	Public	Health check
+2.3 Authentication & Authorization
+API
+Frontend
+Staff
+API
+Frontend
+Staff
+All subsequent requests include
+Authorization: Bearer token
+Enter username + password
+POST /api/auth/login
+Verify bcrypt hash
+JWT token (8hr expiry)
+Store token in localStorage
+GET /api/menu (+ Bearer token)
+Decode JWT, check role
+Menu data
+JWT tokens with 8-hour expiry (one full shift)
+Two roles: staff (POS + Kitchen access) and 
+admin
+ (full access + menu management + user creation)
+bcrypt password hashing (direct library usage for Python 3.14 compatibility)
+Protected routes on the frontend using React Router + AuthContext
+2.4 Frontend — 6 Views
+Login Page (/login)
+Glassmorphic sign-in form. Redirects to the originating protected page after auth.
+
+Login Page
+
+POS Menu (/) — The Core Interface
+Menu items fetched from backend, grouped by category (Appetizers, Mains, Drinks, Desserts)
+Click-to-add cart with quantity controls
+Real-time subtotal, 8% tax calculation, and total
+"Place Order" POSTs to backend, shows confirmation with Order ID
+POS Menu
+
+Kitchen Dashboard (/kitchen)
+Active Orders tab: Polls /api/kitchen/active every 10 seconds for live updates
+Status workflow buttons: Received → Preparing → Ready → Delivered
+Delivered Orders tab: Table view of all completed orders with items, totals, and timestamps
+Admin Dashboard (/admin) — Admin-Only
+Full CRUD table for menu items (create, edit, toggle availability, delete)
+Inline form for adding/editing items
+One-click availability toggle
+Admin Dashboard
+
+Feedback (/feedback) — Public
+Submit tab: Form to leave a review linked to an Order ID
+View All tab: Lists all submitted reviews with timestamps
+Critical for Phase 2: This data feeds into our AI Sentiment Analysis module
+Navigation
+Responsive navbar with active-state indicators
+Admin-only links conditionally rendered based on user role
+User display with role badge and logout button
+2.5 Data Seeding
+seed.py
+ pre-populates the database with:
+
+12 menu items across 4 categories (Appetizers, Mains, Drinks, Desserts)
+2 default accounts: admin/admin123 and staff/staff123
+3. Tech Stack Summary
+Component	Technology	Rationale
+Frontend Framework	React 19 + Vite 8	Fast HMR, modern tooling
+Styling	Tailwind CSS v3	Utility-first, dark glassmorphism theme
+HTTP Client	Axios	Interceptors for JWT, clean error handling
+Backend Framework	FastAPI (Python)	Async-first, auto OpenAPI docs, type safety
+ORM	SQLAlchemy (async)	Mature, supports multiple DBs
+Database	SQLite (dev)	Zero-setup; one env var to switch to PostgreSQL
+Auth	JWT + bcrypt	Stateless, shift-based expiry
+API Docs	Swagger UI	Auto-generated at /docs
+4. How to Run It
+bash
+# Backend (terminal 1)
+cd backend
+pip install -r requirements.txt
+python seed.py          # Create tables + seed menu data
+python -m uvicorn app.main:app --reload --port 8000
+# Frontend (terminal 2)
+cd frontend
+npm install
+npm run dev             # → http://localhost:5173
+Default credentials: 
+admin
+ / admin123 or staff / staff123
+
+5. Phase 2 Roadmap (Next)
+Four LLM-powered features using LangChain + OpenAI:
+
+Feature	User Story	Impact
+Generative Upsell	"Based on your cart, you might also like..."	↑ Average order value
+Text-to-SQL Analytics	Admin asks "What sold most last week?" in plain English	↓ Time to insight
+Sentiment Analysis	Auto-analyze review: "Food: positive, Service: negative"	↑ Actionable feedback
+Wait-Time Estimator	"Your order will be ready in ~18 minutes"	↑ Customer satisfaction
+6. Key Metrics
+Metric	Value
+Total files	45
+Lines of code	6,049
+API endpoints	16
+Database models	4
+Frontend views	6
+GitHub	RRM00/ai-rms

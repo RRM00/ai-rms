@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { POS } from './pages/POS';
 import { Kitchen } from './pages/Kitchen';
 import { Admin } from './pages/Admin';
+import { Analytics } from './pages/Analytics';
 import { Feedback } from './pages/Feedback';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           {/* Admin Routes */}
           <Route element={<ProtectedRoute requireAdmin={true} />}>
             <Route path="/admin" element={<Admin />} />
+            <Route path="/analytics" element={<Analytics />} />
           </Route>
         </Routes>
       </main>
